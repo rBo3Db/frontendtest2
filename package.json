@@ -1,0 +1,12 @@
+{
+  "name": "rbo3db-first-program",
+  "version": "1.0.0",
+  "description": "Тестовое задание",
+  "main": "app.js",
+  "author": "Chernitsin Aleksey",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2",
+    "mysql": "^2.15.0"
+  }
+}
