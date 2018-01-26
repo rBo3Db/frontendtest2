@@ -1,12 +1,15 @@
 {
-  "name": "rbo3db-first-program",
-  "version": "1.0.0",
-  "description": "Тестовое задание",
-  "main": "app.js",
-  "author": "Chernitsin Aleksey",
-  "license": "ISC",
+  "name": "Elastic-Beanstalk-Sample-App",
+  "version": "0.0.1",
+  "private": true,
   "dependencies": {
-    "express": "^4.16.2",
-    "mysql": "^2.15.0"
+    "ejs": "latest",
+    "aws-sdk": "latest",
+    "express": "latest",
+    "body-parser": "latest",
+    "mysql": "latest"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
 }
