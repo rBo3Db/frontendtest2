@@ -17,32 +17,71 @@
       
         <div class="text-center">
             <h1>Countries:</h1>
-            <ul class="list-group">
-
-            </ul>
+                <p><select class="list-group" name="Countries">
+                    <option disabled>Выберите Страну</option>
+                </select></p>
+                <p><input id="send" type="submit" value="Отправить"></p>
+                <p>сюда хуйнанёт:
+                    <p id="citiesConteiner"></p>
+                </p>
         </div>
-         <script>
+        <script>
             $.ajax({
                 type: "GET",
-                    url: '/getCountries',
-                    dataType: "json",
-                    success: function (data) {
-                        var container = $('.list-group'); 
-                        var s = '';
-                            for (var i=0; i< data.length; i++){
-                                s= data[i].name + ', ';
-                                $("<li class='list-group-item'></li>").appendTo(container).text(s);
-                            }
-                            
-                            console.log (s);
-                        },
-                        error: function(){
-                            alert('Произогла ошибка!');
-                        }
-                    });    
+                url: '/getCountries',
+                dataType: "json",
+                success: function (data) {
+                    var container = $('.list-group'); 
+                    var s = '';
+                    for (var i=0; i< data.length; i++){
+                        s= data[i].name;
+                        var id = data[i].ID;
+                        $("<option></option>").appendTo(container).attr("value",id).text(s);
+                    };
+                },
+                error: function(){
+                    alert('Произогла ошибка!');
+                }
+            });
+            $('#send').click(function(){
+                var idid = $(".list-group :selected").val();
+                console.log(idid);
+
+                $.ajax({
+                type: "GET",
+                url: '/getCitiesByIdOfCountry',
+                data:{
+                    idid : idid},
+                dataType: "json",
+
+                success: function (data) {
+                    var container = $('#citiesConteiner'); 
+                    var s = '';
+                    console.log('длина даты'+ data.length);
+                    for (var i=0; i< data.length; i++){
+                        s= data[i].name;
+                        $("<p></p>").appendTo(container).text(s);
+                        console.log(s);
+                    };
+                },
+                error: function(){
+                    alert('Произогла ошибка!');
+                }
+                });
+            });    
         </script>  
-         <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+         <!-- jQuery first, then Popper.js, then Bootstrap JS 
+         SELECT ID FROM countries WHERE name = "desiredCountryName";
+         SELECT name FROM cities WHERE countryID = "desiderCountryID"
+         
+         ИЛИ
+
+         SELECT name FROM cities WHERE countryID = (SELECT ID FROM countries WHERE name = "desiredCountryName");
+
+
+        -->
+
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
     </body>

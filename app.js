@@ -29,6 +29,26 @@ app.get('/', (request, response) =>{
     response.send(fileContent);
 });
 
+ app.get('/getCitiesByIdOfCountry', (request, response) =>{
+    var mysql = require('mysql');
+    var connection = mysql.createConnection({
+    host: 'countriesdb.cgcsc13jbtcg.us-east-2.rds.amazonaws.com',
+    port: '3306',
+    user: 'masterUser',
+    password: 'QWer123!',
+    database : 'countriesDB'});
+    var citiesByIdOfCountry = response; 
+    var idhui = Number(request.query.idid);   
+    connection.query('SELECT name FROM cities WHERE countryID = '+idhui, function(error, result, fields){
+        if(error)
+        {
+            citiesByIdOfCountry.send(JSON.stringify(error));
+            return;
+        }
+        
+        citiesByIdOfCountry.send(JSON.stringify(result));
+});});
+
 app.listen(port, (err) => {
     if (err) {
         return console.log('something bad happened', err)
