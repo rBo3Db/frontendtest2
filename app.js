@@ -29,6 +29,11 @@ app.get('/', (request, response) =>{
     response.send(fileContent);
 });
 
+app.get('/main.css', (request, response) =>{
+    var fs = require("fs");
+    var fileContent = fs.readFileSync("main.css", "utf8");
+    response.send(fileContent);
+});
  app.get('/getCitiesByIdOfCountry', (request, response) =>{
     var mysql = require('mysql');
     var connection = mysql.createConnection({
@@ -38,8 +43,10 @@ app.get('/', (request, response) =>{
     password: 'QWer123!',
     database : 'countriesDB'});
     var citiesByIdOfCountry = response; 
-    var idhui = Number(request.query.idid);   
-    connection.query('SELECT name FROM cities WHERE countryID = '+idhui, function(error, result, fields){
+    var idhui = Number(request.query.idid);
+    var pageNumber = Number(request.query.pageNumber);
+    pageNumber = pageNumber *5;
+    connection.query('SELECT name FROM cities WHERE countryID = '+idhui+' LIMIT '+pageNumber+ ',5', function(error, result, fields){
         if(error)
         {
             citiesByIdOfCountry.send(JSON.stringify(error));
