@@ -67,6 +67,7 @@
                 var pageCount; //храним количество страниц
                 var pageNumber; //храним номер
                 var pageValue; //берём значение value
+                
                 $('.container').on('click', '.send', function(){ //обёртка, чтобы после появления новых элементов с классом сенд, они были доступны для обработчика
                     pageValue = $(this).val();
                     if (pageValue == "Отправить") {
@@ -80,6 +81,7 @@
                     else {
                         pageNumber = pageValue;
                     }
+                    
                     $.ajax({
                         type: "GET",
                         url: '/getCitiesByIdOfCountry',
@@ -114,11 +116,15 @@
                             }
                             for (var j=0; j<pageCount; j++){
                                 var number=j+1;
-                                $("<li class=\"page-item send\" value=\""+j+"\"><a class=\"page-link\" href=\"#\">"+number+"</a></li>").appendTo(containerForPaging);
+                                if (pageNumber == j) {
+                                    $("<li class=\"page-item active\" value=\""+j+"\"><span class=\"page-link\">"+number+"<span class=\"sr-only\">(current)</span></span></li>").appendTo(containerForPaging);
+                                } else {
+                                $("<li class=\"page-item send\" value=\""+j+"\"><a class=\"page-link\" href=\"#\">"+number+"</a></li>").appendTo(containerForPaging)};
                             }
                             if ((pageNumber+1) != pageCount) {
                                 $("<li class=\"page-item send\" id=\"next\"><a class=\"page-link\" href=\"#\"> >> </a></li>").appendTo(containerForPaging);
                             }
+
                         },
                         error: function(){
                             alert('Произогла ошибка!');
