@@ -21,6 +21,7 @@ app.get('/getCountries', (request, response) => {
         
         me.send(JSON.stringify(result));
     });
+
 });  
 
 app.get('/', (request, response) =>{
@@ -45,16 +46,22 @@ app.get('/main.css', (request, response) =>{
     var citiesByIdOfCountry = response; 
     var idhui = Number(request.query.idid);
     var pageNumber = Number(request.query.pageNumber);
-    pageNumber = pageNumber *5;
-    connection.query('SELECT name FROM cities WHERE countryID = '+idhui+' LIMIT '+pageNumber+ ',5', function(error, result, fields){
-        if(error)
-        {
-            citiesByIdOfCountry.send(JSON.stringify(error));
-            return;
-        }
-        
-        citiesByIdOfCountry.send(JSON.stringify(result));
-});});
+    pageNumber = pageNumber * 5;
+//    var pagingNumber;
+    connection.query ('SELECT Count(*) as col FROM cities WHERE countryID = '+idhui, function(error, result, fields)
+    {
+        var col = result[0].col;
+        connection.query('SELECT name FROM cities WHERE countryID = '+idhui+' LIMIT '+pageNumber+ ',5', function(error, data, fields){
+            if(error)
+            {
+                citiesByIdOfCountry.send(JSON.stringify(error));
+                return;
+            }
+            var result = {count : col, cities : data};
+            citiesByIdOfCountry.send(JSON.stringify(result));
+    });
+    });
+   });
 
 app.listen(port, (err) => {
     if (err) {
