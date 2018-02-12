@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 var port = process.env.PORT || 3000;
 
-app.get('/getCountries', (request, response) => {
+/* app.get('/getCountries', (request, response) => {
     var mysql = require('mysql');
     var connection = mysql.createConnection({
     host: 'countriesdb.cgcsc13jbtcg.us-east-2.rds.amazonaws.com',
@@ -22,7 +22,7 @@ app.get('/getCountries', (request, response) => {
         me.send(JSON.stringify(result));
     });
 
-});  
+});  */ 
 
 app.get('/', (request, response) =>{
     var fs = require("fs");
@@ -35,7 +35,7 @@ app.get('/main.css', (request, response) =>{
     var fileContent = fs.readFileSync("main.css", "utf8");
     response.send(fileContent);
 });
- app.get('/getCitiesByIdOfCountry', (request, response) =>{
+app.get('/getCitiesByIdOfCountry', (request, response) =>{
     var mysql = require('mysql');
     var connection = mysql.createConnection({
     host: 'countriesdb.cgcsc13jbtcg.us-east-2.rds.amazonaws.com',
@@ -44,24 +44,34 @@ app.get('/main.css', (request, response) =>{
     password: 'QWer123!',
     database : 'countriesDB'});
     var citiesByIdOfCountry = response; 
-    var idhui = Number(request.query.idid);
+    var partOfName = request.query.partOfName;
     var pageNumber = Number(request.query.pageNumber);
     pageNumber = pageNumber * 5;
-//    var pagingNumber;
-    connection.query ('SELECT Count(*) as col FROM cities WHERE countryID = '+idhui, function(error, result, fields)
-    {
-        var col = result[0].col;
-        connection.query('SELECT name FROM cities WHERE countryID = '+idhui+' LIMIT '+pageNumber+ ',5', function(error, data, fields){
-            if(error)
-            {
+//    проверка на пустоту и неправильные символы
+ //   if (partOfName != "") {
+        connection.query ("SELECT ID FROM countries where name like '%"+partOfName+"%'", function(error, res, fields) {  
+            if (res.length == 0) {
                 citiesByIdOfCountry.send(JSON.stringify(error));
                 return;
+            } else {
+            var idhui = res[0].ID;
+                connection.query ('SELECT Count(*) as col FROM cities WHERE countryID = '+idhui, function(error, result, fields)
+                {
+                    var col = result[0].col;
+                    connection.query('SELECT name FROM cities WHERE countryID = '+idhui+' LIMIT '+pageNumber+ ',5', function(error, data, fields){
+                        if(error)
+                        {
+                            citiesByIdOfCountry.send(JSON.stringify(error));
+                            return;
+                        }
+                        var result = {count : col, cities : data};
+                        citiesByIdOfCountry.send(JSON.stringify(result));
+                });
+                });
             }
-            var result = {count : col, cities : data};
-            citiesByIdOfCountry.send(JSON.stringify(result));
-    });
-    });
-   });
+        });
+ //   }
+});
 
 app.listen(port, (err) => {
     if (err) {

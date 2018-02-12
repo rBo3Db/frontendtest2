@@ -26,11 +26,15 @@
                 <div class="col-md-2"> </div>
                 <div class="col-md-4 col-sm-6">
                     <h1>Countries:</h1>
-                    <select class="list-group" name="Countries">
+                    <!-- <select class="list-group" name="Countries">
                         <option disabled>Выберите Страну</option>
                     </select>
                     <p></p>
+                    <input class="send" type="submit" value="Отправить"> -->
+                    <input type="search" class="list-group" name="Countries">
+                    <p></p>
                     <input class="send" type="submit" value="Отправить">
+                    
                 </div>
                 <div class="col-md-4 col-sm-6">
                     <h1>Their cities:</h1>
@@ -44,8 +48,8 @@
             </div>
         </div>
         <script>
-            function getCountries() {
-            $.ajax({
+ /*           function getCountries() {
+             $.ajax({
                 type: "GET",
                 url: '/getCountries',
                 dataType: "json",
@@ -60,10 +64,10 @@
                 },
                 error: function(){
                     alert('Произогла ошибка!');
-                }
-            });};
+            }   
+            });};  */
             function getCities() {
-                var idid; // ID страницы
+                var partOfName; // кусок имени страны
                 var pageCount; //храним количество страниц
                 var pageNumber; //храним номер
                 var pageValue; //берём значение value
@@ -72,7 +76,10 @@
                     pageValue = $(this).val();
                     if (pageValue == "Отправить") {
                         pageNumber = 0;
-                        idid = $(".list-group :selected").val();
+                        partOfName = $(".list-group").val();
+                        if (partOfName == "") {
+                            return;
+                        }
                     } else if ($(this).attr("id") == "previous") {
                         pageNumber--;
                     } else if ($(this).attr("id") == "next") {
@@ -86,45 +93,48 @@
                         type: "GET",
                         url: '/getCitiesByIdOfCountry',
                         data:{
-                            idid : idid,
+                            partOfName : partOfName,
                             pageNumber : pageNumber},
                         dataType: "json",                        
                         success: function (data) {
-                            var container = $('#citiesConteiner'); 
-                            var s = '';
-                            container.empty();
-                            console.log('длина даты'+ data.length);
-                            for (var i=0; i< data.cities.length; i++){
-                                s= data.cities[i].name;
-                                $("<li></li>").appendTo(container).text(s);
-                                console.log(s);
-                            };
-                            console.log('data' +data+ ' -- data.count'+ data.count);
-                            pageCount = Math.floor(data.count / 5); //т.к. выводим по 5, округляем до 5
+                            if (data == null) {
+                                alert('в базе нет такой страны');
+                            } else {
+                                var container = $('#citiesConteiner'); 
+                                var s = '';
+                                container.empty();
+                                console.log('длина даты'+ data.length);
+                                for (var i=0; i< data.cities.length; i++){
+                                    s= data.cities[i].name;
+                                    $("<li></li>").appendTo(container).text(s);
+                                    console.log(s);
+                                };
+                                console.log('data' +data+ ' -- data.count'+ data.count);
+                                pageCount = Math.floor(data.count / 5); //т.к. выводим по 5, округляем до 5
 
-                            if (data.count % 5 != 0) //если нацело не делилось, то прибавляем один.
-                            {
-                                pageCount ++;
+                                if (data.count % 5 != 0) //если нацело не делилось, то прибавляем один.
+                                {
+                                    pageCount ++;
+                                }
+                                console.log('pageCount' + pageCount);
+                                console.log('pageNumber' + pageNumber);
+    
+                                var containerForPaging = $('.pagination');
+                                containerForPaging.empty();
+                                if (pageNumber != 0){ //смотрим, нужно ли создавать кнопку "назад"
+                                    $("<li class=\"page-item send\" id=\"previous\" ><a class=\"page-link\" href=\"#\"> << </a></li>").appendTo(containerForPaging);
+                                }
+                                for (var j=0; j<pageCount; j++){
+                                    var number=j+1;
+                                    if (pageNumber == j) {
+                                        $("<li class=\"page-item active\" value=\""+j+"\"><span class=\"page-link\">"+number+"<span class=\"sr-only\">(current)</span></span></li>").appendTo(containerForPaging);
+                                    } else {
+                                    $("<li class=\"page-item send\" value=\""+j+"\"><a class=\"page-link\" href=\"#\">"+number+"</a></li>").appendTo(containerForPaging)};
+                                }
+                                if ((pageNumber+1) != pageCount) {
+                                    $("<li class=\"page-item send\" id=\"next\"><a class=\"page-link\" href=\"#\"> >> </a></li>").appendTo(containerForPaging);
+                                }
                             }
-                            console.log('pageCount' + pageCount);
-                            console.log('pageNumber' + pageNumber);
- 
-                            var containerForPaging = $('.pagination');
-                            containerForPaging.empty();
-                            if (pageNumber != 0){ //смотрим, нужно ли создавать кнопку "назад"
-                                $("<li class=\"page-item send\" id=\"previous\" ><a class=\"page-link\" href=\"#\"> << </a></li>").appendTo(containerForPaging);
-                            }
-                            for (var j=0; j<pageCount; j++){
-                                var number=j+1;
-                                if (pageNumber == j) {
-                                    $("<li class=\"page-item active\" value=\""+j+"\"><span class=\"page-link\">"+number+"<span class=\"sr-only\">(current)</span></span></li>").appendTo(containerForPaging);
-                                } else {
-                                $("<li class=\"page-item send\" value=\""+j+"\"><a class=\"page-link\" href=\"#\">"+number+"</a></li>").appendTo(containerForPaging)};
-                            }
-                            if ((pageNumber+1) != pageCount) {
-                                $("<li class=\"page-item send\" id=\"next\"><a class=\"page-link\" href=\"#\"> >> </a></li>").appendTo(containerForPaging);
-                            }
-
                         },
                         error: function(){
                             alert('Произогла ошибка!');
@@ -134,7 +144,7 @@
                     console.log('pageNumber'+ pageNumber);
             });};
             
-            getCountries();
+         //   getCountries();
             getCities();
             
             
