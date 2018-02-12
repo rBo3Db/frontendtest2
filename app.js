@@ -47,30 +47,36 @@ app.get('/getCitiesByIdOfCountry', (request, response) =>{
     var partOfName = request.query.partOfName;
     var pageNumber = Number(request.query.pageNumber);
     pageNumber = pageNumber * 5;
-//    проверка на пустоту и неправильные символы
- //   if (partOfName != "") {
-        connection.query ("SELECT ID FROM countries where name like '%"+partOfName+"%'", function(error, res, fields) {  
-            if (res.length == 0) {
+//    проверка на неправильные символы
+        connection.query ("SELECT ID FROM countries where name like '%"+partOfName+"%'", function(error, res, fields) {
+            var howManyCountries = res.length;
+            if (howManyCountries == 0) {
                 citiesByIdOfCountry.send(JSON.stringify(error));
                 return;
             } else {
-            var idhui = res[0].ID;
-                connection.query ('SELECT Count(*) as col FROM cities WHERE countryID = '+idhui, function(error, result, fields)
+                for (var numberOfCountries = 0; numberOfCountries < howManyCountries; numberOfCountries++) { //генератор запроса в зависимости от совпадений символов в запросе
+                    var idhui = res[numberOfCountries].ID;
+                    if(numberOfCountries == 0) {
+                    var req = 'WHERE countryID = '+ idhui; 
+                    } else {
+                        req = req + ' OR countryID = ' + idhui;
+                    }
+                };
+                connection.query ('SELECT Count(*) as col FROM cities ' + req, function(error, result, fields)
                 {
                     var col = result[0].col;
-                    connection.query('SELECT name FROM cities WHERE countryID = '+idhui+' LIMIT '+pageNumber+ ',5', function(error, data, fields){
+                    connection.query('SELECT name FROM cities ' + req +' LIMIT '+pageNumber+ ',5', function(error, data, fields){
                         if(error)
                         {
                             citiesByIdOfCountry.send(JSON.stringify(error));
-                            return;
+                            return;    
                         }
                         var result = {count : col, cities : data};
                         citiesByIdOfCountry.send(JSON.stringify(result));
+                    });
                 });
-                });
-            }
+            };           
         });
- //   }
 });
 
 app.listen(port, (err) => {
