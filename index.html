@@ -31,9 +31,10 @@
                     </select>
                     <p></p>
                     <input class="send" type="submit" value="Отправить"> -->
-                    <input type="search" class="list-group" name="Countries">
+<!--                     <input type="search" class="list-group" name="Countries">
                     <p></p>
-                    <input class="send" type="submit" value="Отправить">
+                    <input class="send" type="submit" value="Отправить"> --> 
+                    <input type="search" class="list-group" name="Countries" id="inputCountry">
                     <h2>We have in database:</h2>
                     <ul>
                         <li> Russia </li>
@@ -55,6 +56,7 @@
             </div>
         </div>
         <script>
+            var timeoutJobId = 0;
  /*           function getCountries() {
              $.ajax({
                 type: "GET",
@@ -73,87 +75,103 @@
                     alert('Произогла ошибка!');
             }   
             });};  */
-            function getCities() {
-                var partOfName; // кусок имени страны
-                var pageCount; //храним количество страниц
-                var pageNumber; //храним номер
-                var pageValue; //берём значение value
-                
-                $('.container').on('click', '.send', function(){ //обёртка, чтобы после появления новых элементов с классом сенд, они были доступны для обработчика
+/*             function getKey() {
+                $('.container').on('keyup', 'inputCountry', function() {
                     pageValue = $(this).val();
-                    if (pageValue == "Отправить") {
-                        pageNumber = 0;
-                        partOfName = $(".list-group").val();
-                        if (partOfName == "") {
-                            return;
-                        }
-                    } else if ($(this).attr("id") == "previous") {
-                        pageNumber--;
-                    } else if ($(this).attr("id") == "next") {
-                        pageNumber++;
-                    }
-                    else {
-                        pageNumber = pageValue;
-                    }
-                    
-                    $.ajax({
-                        type: "GET",
-                        url: '/getCitiesByIdOfCountry',
-                        data:{
-                            partOfName : partOfName,
-                            pageNumber : pageNumber},
-                        dataType: "json",                        
-                        success: function (data) {
-                            if (data == null) {
-                                alert('в базе нет такой страны');
-                            } else {
-                                var container = $('#citiesConteiner'); 
-                                var s = '';
-                                container.empty();
-                                console.log('длина даты'+ data.length);
-                                for (var i=0; i< data.cities.length; i++){
-                                    s= data.cities[i].name;
-                                    $("<li></li>").appendTo(container).text(s);
-                                    console.log(s);
-                                };
-                                console.log('data' +data+ ' -- data.count'+ data.count);
-                                pageCount = Math.floor(data.count / 5); //т.к. выводим по 5, округляем до 5
+                    pageNumber = 0;
+                    partOfName = $(".list-group").val();
+                }); */
+                
+            var partOfName; // кусок имени страны
+            var pageCount; //храним количество страниц
+            var pageNumber; //храним номер
+            
+            $('.container').on('click', '.send', function(){ //обёртка, чтобы после появления новых элементов с классом сенд, они были доступны для обработчика
+                partOfName = $(".list-group").val(); 
+                if ($(this).attr("id") == "previous") {
+                    pageNumber--;
+                } else if ($(this).attr("id") == "next") {
+                    pageNumber++;
+                } else {
+                    pageNumber = $(this).val();
+                };
+                sendData();
+            });
+                
+            $('#inputCountry').keyup(function(keyEvent) { 
+                if (timeoutJobId && timeoutJobId !==0)
+                {
+                    clearTimeout(timeoutJobId);
+                }  
+                pageNumber = 0;
+                    partOfName = $(".list-group").val();
+                    if (partOfName == "" || partOfName == " ") {
+                        $('#citiesConteiner').empty(); 
+                        $('.pagination').empty();
+                        return;
+                    };    
+                timeoutJobId = setTimeout(sendData, 1500);
+            });
 
-                                if (data.count % 5 != 0) //если нацело не делилось, то прибавляем один.
-                                {
-                                    pageCount ++;
-                                }
-                                console.log('pageCount' + pageCount);
-                                console.log('pageNumber' + pageNumber);
-    
-                                var containerForPaging = $('.pagination');
-                                containerForPaging.empty();
-                                if (pageNumber != 0){ //смотрим, нужно ли создавать кнопку "назад"
-                                    $("<li class=\"page-item send\" id=\"previous\" ><a class=\"page-link\" href=\"#\"> << </a></li>").appendTo(containerForPaging);
-                                }
-                                for (var j=0; j<pageCount; j++){
-                                    var number=j+1;
-                                    if (pageNumber == j) {
-                                        $("<li class=\"page-item active\" value=\""+j+"\"><span class=\"page-link\">"+number+"<span class=\"sr-only\">(current)</span></span></li>").appendTo(containerForPaging);
-                                    } else {
-                                    $("<li class=\"page-item send\" value=\""+j+"\"><a class=\"page-link\" href=\"#\">"+number+"</a></li>").appendTo(containerForPaging)};
-                                }
-                                if ((pageNumber+1) != pageCount) {
-                                    $("<li class=\"page-item send\" id=\"next\"><a class=\"page-link\" href=\"#\"> >> </a></li>").appendTo(containerForPaging);
-                                }
+
+                function sendData() {
+                    $.ajax({
+                    type: "GET",
+                    url: '/getCitiesByIdOfCountry',
+                    data:{
+                        partOfName : partOfName,
+                        pageNumber : pageNumber},
+                    dataType: "json",                        
+                    success: function (data) {
+                        if (data == null) {
+                            $('#citiesConteiner').empty(); 
+                            $('.pagination').empty();
+                            return;
+                        } else {
+                            var container = $('#citiesConteiner'); 
+                            var s = '';
+                            container.empty();
+                            console.log('длина даты'+ data.length);
+                            for (var i=0; i< data.cities.length; i++){
+                                s= data.cities[i].name;
+                                $("<li></li>").appendTo(container).text(s);
+                                console.log(s);
+                            };
+                            console.log('data' +data+ ' -- data.count'+ data.count);
+                            pageCount = Math.floor(data.count / 5); //т.к. выводим по 5, округляем до 5
+
+                            if (data.count % 5 != 0) //если нацело не делилось, то прибавляем один.
+                            {
+                                pageCount ++;
                             }
-                        },
-                        error: function(){
-                            alert('Произогла ошибка!');
+                            console.log('pageCount' + pageCount);
+                            console.log('pageNumber' + pageNumber);
+
+                            var containerForPaging = $('.pagination');
+                            containerForPaging.empty();
+                            if (pageNumber != 0){ //смотрим, нужно ли создавать кнопку "назад"
+                                $("<li class=\"page-item send\" id=\"previous\" ><a class=\"page-link\" href=\"#\"> << </a></li>").appendTo(containerForPaging);
+                            }
+                            for (var j=0; j<pageCount; j++){
+                                var number=j+1;
+                                if (pageNumber == j) {
+                                    $("<li class=\"page-item active\" value=\""+j+"\"><span class=\"page-link\">"+number+"<span class=\"sr-only\">(current)</span></span></li>").appendTo(containerForPaging);
+                                } else {
+                                $("<li class=\"page-item send\" value=\""+j+"\"><a class=\"page-link\" href=\"#\">"+number+"</a></li>").appendTo(containerForPaging)};
+                            }
+                            if ((pageNumber+1) != pageCount) {
+                                $("<li class=\"page-item send\" id=\"next\"><a class=\"page-link\" href=\"#\"> >> </a></li>").appendTo(containerForPaging);
+                            }
                         }
-                    });
-                   //$('#viewerMe').show();
-                    console.log('pageNumber'+ pageNumber);
-            });};
+                    },
+                    error: function(){
+                        alert('Произогла ошибка!');
+                    }
+                });}
+                //$('#viewerMe').show();
+                console.log('pageNumber'+ pageNumber);
             
-         //   getCountries();
-            getCities();
-            
+         //   getCountries();       
             
 /* 
             $('.page-item').click(function(){
