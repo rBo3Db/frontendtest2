@@ -50,6 +50,10 @@ app.get('/getCitiesByIdOfCountry', (request, response) =>{
 //    проверка на неправильные символы
     connection.query ("SELECT ID FROM countries where name like '%"+partOfName+"%'", function(error, res, fields) {
         var howManyCountries = res.length;
+        if(error)            
+        {
+            return;
+        }
         if (howManyCountries == 0) {
             citiesByIdOfCountry.send(JSON.stringify(error));
             return;
@@ -78,7 +82,6 @@ app.get('/getCitiesByIdOfCountry', (request, response) =>{
         };           
     });
 });
-
 app.listen(port, (err) => {
     if (err) {
         return console.log('something bad happened', err)

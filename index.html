@@ -66,48 +66,14 @@
                 </div>
                 <div class="col-md-1 "> </div>
             </div>
-            <div class="row">
+            <div class="row" id="mapConteiter">
                 <div class="map" id="map"></div>
             </div>
         </div>
         <script>
-ymaps.ready(init);
 
-function init() {
-    var map = new ymaps.Map('map', {
-        center: [59.95, 30.32],
-        zoom: 3,
-        controls: ['zoomControl']
-    });
-    var placemark = new ymaps.Placemark ([59.95, 30.32]
-    ,{});
-    map.geoObjects.add(placemark);
-}
+
             var timeoutJobId = 0;
- /*           function getCountries() {
-             $.ajax({
-                type: "GET",
-                url: '/getCountries',
-                dataType: "json",
-                success: function (data) {
-                    var container = $('.list-group'); 
-                    var s = '';
-                    for (var i=0; i< data.length; i++){
-                        s= data[i].name;
-                        var id = data[i].ID;
-                        $("<option></option>").appendTo(container).attr("value",id).text(s);
-                    };
-                },
-                error: function(){
-                    alert('Произогла ошибка!');
-            }   
-            });};  */
-/*             function getKey() {
-                $('.container').on('keyup', 'inputCountry', function() {
-                    pageValue = $(this).val();
-                    pageNumber = 0;
-                    partOfName = $(".list-group").val();
-                }); */
                 
             var partOfName; // кусок имени страны
             var pageCount; //храним количество страниц
@@ -150,20 +116,27 @@ function init() {
                         pageNumber : pageNumber},
                     dataType: "json",                        
                     success: function (data) {
+                        $('#citiesConteiner').empty(); 
+                        $('.pagination').empty();
+                        $('.map').empty();
                         if (data == null) {
-                            $('#citiesConteiner').empty(); 
-                            $('.pagination').empty();
+
                             return;
                         } else {
                             var container = $('#citiesConteiner'); 
                             var s = '';
-                            container.empty();
+                            
+                        //    container.empty();
                             console.log('длина даты'+ data.length);
                             for (var i=0; i< data.cities.length; i++){
                                 s= data.cities[i].name;
                                 $("<li></li>").appendTo(container).text(s);
                                 console.log(s);
+                                
                             };
+
+                            var citiesi = data.cities;
+                            ymaps.ready(() => init(citiesi));
                             console.log('data' +data+ ' -- data.count'+ data.count);
                             pageCount = Math.floor(data.count / 5); //т.к. выводим по 5, округляем до 5
 
@@ -175,7 +148,7 @@ function init() {
                             console.log('pageNumber' + pageNumber);
 
                             var containerForPaging = $('.pagination');
-                            containerForPaging.empty();
+                        //    containerForPaging.empty();
                             if (pageNumber != 0){ //смотрим, нужно ли создавать кнопку "назад"
                                 $("<li class=\"page-item send\" id=\"previous\" ><a class=\"page-link\" href=\"#\"> << </a></li>").appendTo(containerForPaging);
                             }
@@ -189,6 +162,9 @@ function init() {
                             if ((pageNumber+1) != pageCount) {
                                 $("<li class=\"page-item send\" id=\"next\"><a class=\"page-link\" href=\"#\"> >> </a></li>").appendTo(containerForPaging);
                             }
+                            //var cities = ["нижний новгород", "moscow"];
+                            
+                            
                         }
                     },
                     error: function(){
@@ -198,37 +174,48 @@ function init() {
                 //$('#viewerMe').show();
                 console.log('pageNumber'+ pageNumber);
             
-         //   getCountries();       
+    function init(cityName) {
+    var myMap = new ymaps.Map('map', {
+        center: [55.753994, 37.622093],
+        zoom: 3,
+        controls: []
+    });
+    for (var i=0; i< cityName.length; i++){
+    var city = cityName[i].name;
+    // Поиск координат центра Нижнего Новгорода.}
+    ymaps.geocode(city, {
+        /**
+         * Опции запроса
+         * @see https://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/geocode.xml
+         */
+        // Сортировка результатов от центра окна карты.
+        // boundedBy: myMap.getBounds(),
+        // strictBounds: true,
+        // Вместе с опцией boundedBy будет искать строго внутри области, указанной в boundedBy.
+        // Если нужен только один результат, экономим трафик пользователей.
+        results: 1
+    }).then(function (res) {
+            // Выбираем первый результат геокодирования.
+            var firstGeoObject = res.geoObjects.get(0),
             
-/* 
-            $('.page-item').click(function(){
-                var pageNumber = $(".page-item").val();
-                console.log(idid);
-                $.ajax({
-                    type: "GET",
-                    url: '/getCitiesByIdOfCountry',
-                    data:{
-                        pageNumber : pageNumber},
-                    dataType: "json",
+                // Координаты геообъекта.
+                coords = firstGeoObject.geometry.getCoordinates(),
+                // Область видимости геообъекта.
+                bounds = firstGeoObject.properties.get('boundedBy');
 
-                    success: function (data) {
-                        var container = $('#citiesConteiner'); 
-                        var s = '';
-                        container.empty();
-                        console.log('длина даты'+ data.length);
-                        for (var i=0; i< data.length; i++){
-                            s= data[i].name;
-                            $("<li></li>").appendTo(container).text(s);
-                            console.log(s);
-                        };
-                        
-                    },
-                    error: function(){
-                        alert('Произогла ошибка!');
-                    }
-                });
-                $('#viewerMe').show();
-            });  */   
+            firstGeoObject.options.set('preset', 'islands#darkBlueDotIconWithCaption');
+            // Получаем строку с адресом и выводим в иконке геообъекта.
+            firstGeoObject.properties.set('iconCaption', firstGeoObject.getAddressLine());
+
+            // Добавляем первый найденный геообъект на карту.
+            myMap.geoObjects.add(firstGeoObject);
+            // Масштабируем карту на область видимости геообъекта.
+            myMap.setCenter( coords, 3, {
+                checkZoomRange: true
+            });
+});
+}
+}
         </script>  
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
